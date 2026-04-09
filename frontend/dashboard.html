@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Inter',sans-serif;
+}
+
+body{
+  height:100vh;
+  display:flex;
+  background: linear-gradient(135deg,#7111e6,#6a2799);
+  overflow:hidden;
+}
+
+/* SIDEBAR */
+.sidebar{
+  width:250px;
+  min-width:70px;
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(20px);
+  padding:20px 10px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  align-items:center;
+  transition:0.3s;
+  border-right:1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar.collapsed{
+  width:80px;
+}
+
+.menu-toggle{
+  font-size:22px;
+  cursor:pointer;
+  margin-bottom:20px;
+  color:white;
+}
+
+.sidebar h2{
+  color:white;
+  margin-bottom:20px;
+  text-align:center;
+}
+
+/* MENU */
+.menu{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:100%;
+}
+
+.btn{
+  width:85%;
+  padding:12px;
+  margin-bottom:12px;
+  border:none;
+  border-radius:25px;
+  cursor:pointer;
+  background: linear-gradient(135deg,#7c3aed,#5b21b6);
+  color:white;
+  font-weight:500;
+  transition:0.3s;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+}
+
+.btn:hover{
+  transform:translateY(-2px) scale(1.03);
+  background: linear-gradient(135deg,#6d28d9,#4c1d95);
+  box-shadow:0 0 15px rgba(124,58,237,0.6);
+}
+
+/* PROFILE BUTTON */
+.profile-btn{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:22px;
+  background: linear-gradient(135deg,#7c3aed,#5b21b6);
+  color:white;
+  border:none;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.profile-btn:hover{
+  transform:scale(1.1);
+  box-shadow:0 0 20px rgba(124,58,237,0.8);
+}
+
+/* MAIN */
+.main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+
+/* CHAT */
+.chat-box{
+  flex:1;
+  padding:20px;
+  overflow-y:auto;
+}
+
+.message{
+  max-width:60%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:15px;
+  animation:fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn{
+  from{opacity:0; transform:translateY(10px);} 
+  to{opacity:1; transform:translateY(0);} 
+}
+
+/* MESSAGES */
+.user{
+  background:#7c3aed;
+  color:white;
+  align-self:flex-end;
+}
+
+.ai{
+  background:rgba(255,255,255,0.15);
+  color:white;
+}
+
+/* INPUT AREA */
+.input-area{
+  position:absolute;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  width:70%;
+  display:flex;
+  padding:12px;
+  border-radius:20px;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+.input-area input{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:transparent;
+  color:white;
+  outline:none;
+}
+
+.input-area input::placeholder{
+  color:#cbd5e1;
+}
+
+.input-area button{
+  margin-left:10px;
+  padding:10px 15px;
+  border:none;
+  border-radius:12px;
+  background: linear-gradient(135deg,#7c3aed,#5b21b6);
+  color:white;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.input-area button:hover{
+  background: linear-gradient(135deg,#6d28d9,#4c1d95);
+  box-shadow:0 0 15px rgba(124,58,237,0.6);
+}
+</style>
+<script>
+// 🔐 PROTECT PAGE
+const token = localStorage.getItem("token");
+
+if (!token) {
+  alert("Please login first");
+  window.location.href = "login.html";
+}
+</script>
+</head>
+
+<body>
+
+<div class="sidebar" id="sidebar">
+  <div>
+    <div class="menu-toggle" onclick="toggleSidebar()">☰</div>
+    <h2>Brain Bloom</h2>
+
+    <div class="menu">
+      <button class="btn" onclick="newChat()">📌 New Chat</button>
+      <button class="btn">📜 History</button>
+    </div>
+  </div>
+  <div>
+    <button class="profile-btn">👤</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="chat-box" id="chatBox"></div>
+
+  <div class="input-area">
+    <input type="text" id="userInput" placeholder="Ask something...">
+    <button onclick="sendMessage()">Send</button>
+    <button onclick="uploadFile()">Upload</button>
+  </div>
+</div>
+
+<script>
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+function sendMessage(){
+  const input = document.getElementById('userInput');
+  const chatBox = document.getElementById('chatBox');
+
+  if(input.value.trim()==='') return;
+
+  const userMsg = document.createElement('div');
+  userMsg.className='message user';
+  userMsg.innerText=input.value;
+  chatBox.appendChild(userMsg);
+
+  setTimeout(()=>{
+    const aiMsg = document.createElement('div');
+    aiMsg.className='message ai';
+    aiMsg.innerText="AI Response to: " + input.value;
+    chatBox.appendChild(aiMsg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  },800);
+
+  input.value='';
+}
+
+function newChat(){
+  document.getElementById('chatBox').innerHTML='';
+}
+
+function uploadFile(){
+  alert('Upload feature coming soon');
+}
+</script>
+
+</body>
+</html>

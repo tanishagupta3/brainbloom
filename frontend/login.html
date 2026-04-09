@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Tutor</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Inter', sans-serif;
+}
+
+body{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background: linear-gradient(135deg,#7111e6,#6a2799);
+}
+
+/* MAIN CONTAINER */
+.container{
+  width:900px;
+  height:520px;
+  display:flex;
+  border-radius:16px;
+  overflow:hidden;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(20px);
+  border:1px solid rgba(255,255,255,0.1);
+  box-shadow:0 20px 60px rgba(0,0,0,0.4);
+}
+
+/* LEFT SIDE */
+.left{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:#fff;
+  font-size:22px;
+  font-weight:600;
+  background: linear-gradient(135deg,#1E293B,#a074ff);
+  border-right:1px solid rgba(255,255,255,0.08);
+}
+
+/* RIGHT SIDE */
+.right{
+  flex:1;
+  padding:40px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+
+  background: rgb(90, 18, 184);
+  backdrop-filter: blur(20px);
+
+  border-left: 1px solid rgba(255,255,255,0.15);
+
+  color: white;
+}
+
+/* TEXT */
+h2{
+  margin-bottom:8px;
+  font-weight:600;
+}
+
+p{
+  margin-bottom:20px;
+  font-size:14px;
+  color:#9CA3AF;
+}
+
+/* INPUT */
+input{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.05);
+  color:white;
+  outline:none;
+}
+
+input::placeholder{
+  color:#9CA3AF;
+}
+
+/* BUTTON */
+button{
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  background:#3B82F6;
+  color:white;
+  font-weight:500;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+button:hover{
+  background:#2563EB;
+}
+
+/* SWITCH */
+.switch{
+  margin-top:15px;
+  font-size:13px;
+  cursor:pointer;
+  color:#60A5FA;
+}
+
+.hidden{
+  display:none;
+}
+</style>
+</head>
+<script>
+async function handleSignup() {
+  console.log("Signup clicked"); // debug
+
+  const inputs = document.querySelectorAll("#signupForm input");
+
+  const name = inputs[0].value;
+  const email = inputs[1].value;
+  const password = inputs[2].value;
+  const confirmPassword = inputs[3].value;
+
+  if (!name || !email || !password || !confirmPassword) {
+    alert("Fill all fields");
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    alert("Passwords do not match");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/api/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email,
+        password
+      })
+    });
+
+    const data = await res.json();
+    console.log(data);
+
+    alert(data.message);
+    window.location.href = "dashboard.html";
+
+  } catch (err) {
+    console.error(err);
+    alert("Server error");
+  }
+}
+</script>
+<script>
+function toggleForm(){
+  document.getElementById('loginForm').classList.toggle('hidden');
+  document.getElementById('signupForm').classList.toggle('hidden');
+}
+
+// 🔥 LOGIN FUNCTION
+async function handleLogin() {
+  console.log("Login clicked"); // debug
+
+  const email = document.querySelector("#loginForm input[type='email']").value;
+  const password = document.querySelector("#loginForm input[type='password']").value;
+
+  if (!email || !password) {
+    alert("Fill all fields");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+    console.log(data);
+
+    if (data.token) {
+      alert("Login successful 😎");
+      localStorage.setItem("token", data.token);
+
+      // redirect
+      window.location.href = "dashboard.html";
+    } else {
+      alert(data.message);
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Server error");
+  }
+}
+</script>
+<body>
+
+<div class="container">
+
+  <!-- LEFT -->
+  <div class="left">
+    AI Tutor
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+
+    <!-- LOGIN -->
+    <div id="loginForm">
+      <h2>Welcome Back</h2>
+      <p>Sign in to continue</p>
+      <input type="email" placeholder="Email">
+      <input type="password" placeholder="Password">
+      <button onclick="handleLogin()">Login</button>
+      <div class="switch" onclick="toggleForm()">Create an account</div>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="signupForm" class="hidden">
+      <h2>Create Account</h2>
+      <p>Start learning with AI</p>
+      <input type="text" placeholder="Full Name">
+      <input type="email" placeholder="Email">
+      <input type="password" placeholder="Password">
+      <input type="password" placeholder="Confirm Password">
+      <input type="email" placeholder="Mentor Email (optional)">
+      <button onclick="handleSignup()">Sign Up</button>
+      <div class="switch" onclick="toggleForm()">Already have an account?</div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function toggleForm(){
+  document.getElementById('loginForm').classList.toggle('hidden');
+  document.getElementById('signupForm').classList.toggle('hidden');
+}
+</script>
+
+</body>
+</html>
