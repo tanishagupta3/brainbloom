@@ -187,13 +187,16 @@ async function handleLogin() {
   }
 
   try {
-    const res = await fetch("http://localhost:5000/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
-    });
+    const res = await fetch("https://brainbloom-production.up.railway.app/login", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    email,
+    password
+    })
+  })
 
     const data = await res.json();
     console.log(data);
