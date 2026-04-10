@@ -13,12 +13,11 @@ app.use(cors());
 app.use(express.json());
 
 // ===== MONGO CONNECT =====
-// 👉 Replace with your Railway Mongo URL
-mongoose.connect("mongodb://mongo:LSOUcJYYodCFltatnLaWCIAfUnWFdGmI@mainline.proxy.rlwy.net:16352")
+mongoose.connect("mongodb://mongo:LSOUcJYYodCFltatnLaWCIAfUnWFdGmI@mainline.proxy.rlwy.net:16352/railway")
   .then(() => console.log("MongoDB connected 🚀"))
   .catch(err => console.log(err));
 
-// ===== USER MODEL =====
+// ===== MODEL =====
 const userSchema = new mongoose.Schema({
   email: String,
   password: String
@@ -26,9 +25,7 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
-// ===== ROUTES =====
-
-// TEST ROUTE
+// ===== TEST =====
 app.get("/", (req, res) => {
   res.send("Backend running 🚀");
 });
@@ -38,16 +35,13 @@ app.post("/api/register", async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.json({ message: "User already exists" });
     }
 
-    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // create user
     const user = new User({
       email,
       password: hashedPassword
@@ -55,7 +49,16 @@ app.post("/api/register", async (req, res) => {
 
     await user.save();
 
-    res.json({ message: "User registered ✅" });
+    const token = jwt.sign(
+      { id: user._id },
+      "SECRET_KEY",
+      { expiresIn: "1h" }
+    );
+
+    res.json({
+      message: "User registered ✅",
+      token
+    });
 
   } catch (err) {
     res.json({ message: "Error registering user" });
@@ -79,7 +82,6 @@ app.post("/api/login", async (req, res) => {
       return res.json({ message: "Wrong password" });
     }
 
-    // create token
     const token = jwt.sign(
       { id: user._id },
       "SECRET_KEY",
@@ -96,22 +98,18 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-// ===== CHAT (TEMP AI) =====
-app.post("/api/chat", async (req, res) => {
+// ===== CHAT =====
+app.post("/api/chat", (req, res) => {
   const { message } = req.body;
 
-  try {
-    // fake AI (replace later)
-    const reply = "AI says: " + message;
-
-    res.json({ reply });
-
-  } catch (err) {
-    res.json({ reply: "Error occurred" });
-  }
+  res.json({
+    reply: "AI says: " + message
+  });
 });
 
 // ===== START SERVER =====
-app.listen(5000, () => {
-  console.log("Server running on http://localhost:5000 🚀");
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT} 🚀`);
 });
